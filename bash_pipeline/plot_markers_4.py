@@ -81,7 +81,7 @@ def main():
     # plotting gene parmeters
     parser.add_argument("-g", "--gene_list", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B) for plotting", default=["MAP2"])
     parser.add_argument("-t", "--plot_type", type=str, nargs="*", help="define the plotting types, e.g., dotplot, violin, stacked_violin, and rank_genes_groups_violin", default=["violin", "dotplot", "stacked_violin", "rank_genes_groups_violin", "umap"])
-    parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6")
+    parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be considered, e.g., leiden, leiden_0.6")
     #parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
     parser.add_argument("-n", "--n_genes", type=int, help="number of genes used for plotting rank_genes_groups_violin", default=8)
     parser.add_argument("-G", "--groups", type=str, nargs="*", help="choose the subset cell groups for plotting rank_genes_groups_violin, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']")

@@ -12,6 +12,17 @@ conda env create -p scPipeline_env/ -f env_requirements.yml
 
 ## Setup
 
+Go through each arguments.txt file in the config folder and set the arguments as required. 
+Within these files, each argument consists of a flag, an equals sign, and a setting. If listing something, 
+simply add a space between each item, e.g. `--gene_list=MAP2 FOX4 APOE`
+To learn about the possible arguments and what each means, call each command with the --help flag.
+For example:
+```
+python3 bash_pipeline/plot_markers_4.py --help
+```
+
+## Running 
+
 
 
 

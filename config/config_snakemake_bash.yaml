@@ -1,0 +1,2 @@
+project: "test"
+convert_to_h5ad: False # Further downstream processing may require an h5ad file rather than a pickle

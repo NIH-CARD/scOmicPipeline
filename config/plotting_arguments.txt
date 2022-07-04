@@ -1,0 +1,3 @@
+--show=no
+--plot_type=umap
+--gene_list=MAP2

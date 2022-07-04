@@ -1,0 +1,3 @@
+--rank_key=rank_genes_groups_r0.6
+--key=leiden_0.4
+--marker_ref_path=data/reference_markers/marker_panglao_brain_dic_update.json

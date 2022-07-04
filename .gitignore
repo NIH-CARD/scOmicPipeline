@@ -1,0 +1,12 @@
+figures/
+logs/
+data/
+
+
+*.pdf
+*.pickle
+*h5ad
+*/h5
+
+__pycache__*
+.DS_Store

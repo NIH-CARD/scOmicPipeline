@@ -12,7 +12,12 @@ conda env create -p scPipeline_env/ -f env_requirements.yml
 
 ## Setup
 
-Go through each arguments.txt file in the config folder and set the arguments as required. 
+1. Set the arguments of config/config_snakemake_bash.yml
+These are the name of the projet, which will be prepended to all output files, as well as
+whether to convert the final output database to h5ad format when finished.
+
+2. Each of the arguments.txt files in the config folder pertains to one of the pipeline steps.
+Go through each and set the arguments as required. 
 Within these files, each argument consists of a flag, an equals sign, and a setting. If listing something, 
 simply add a space between each item, e.g. `--gene_list=MAP2 FOX4 APOE`
 To learn about the possible arguments and what each means, call each command with the --help flag.
@@ -22,7 +27,11 @@ python3 bash_pipeline/plot_markers_4.py --help
 ```
 
 ## Running 
-
+Run the snakemake command, followed by how many cores to use. If using a Biowulf node,
+consider how many were requested for that node.
+```
+snakmake -c4
+```
 
 
 

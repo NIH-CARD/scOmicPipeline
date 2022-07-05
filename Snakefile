@@ -46,7 +46,7 @@ rule all:
 rule qc_1:
     input: "data/ngn_d0_28_raw.h5ad"
     output: temp(config["project"] + "_count_after_QC.pickle")
-    log: "logs/qc_log.txt"
+    log: "logs/" + config["project"] + "_qc_log.txt"
     params: 
         file="config/qc_arguments.txt"
     shell:
@@ -60,7 +60,7 @@ rule qc_1:
 rule cluster_2:
     input: config["project"] + "_count_after_QC.pickle"
     output: temp(config["project"] + "_after_leiden.pickle")
-    log: "logs/cluster_log.txt"
+    log: "logs/" + config["project"] + "_cluster_log.txt"
     params:
         file="config/cluster_arguments.txt"
     shell:
@@ -74,7 +74,7 @@ rule cluster_2:
 rule marker_gene_3:
     input: config['project'] + "_after_leiden.pickle"
     output: temp(config['project'] + "_after_ranking_gene.pickle")
-    log: "logs/ranking_log.txt"
+    log: "logs/" + config["project"] + "_ranking_log.txt"
     params:
         file="config/marker_arguments.txt"
     shell:
@@ -88,7 +88,7 @@ rule marker_gene_3:
 rule plot_markers_4:
     input: config['project'] + "_after_ranking_gene.pickle"
     output: temp(touch(config["project"] + "_after_plotting.txt"))
-    log: "logs/plot_markers_log.txt"
+    log: "logs/" + config["project"] + "_plot_markers_log.txt"
     params:
         file="config/plotting_arguments.txt"
     shell:
@@ -102,7 +102,7 @@ rule plot_markers_4:
 rule annotate_5:
     input: file=config['project'] + "_after_ranking_gene.pickle"
     output: config['project'] + "_after_annotate.pickle"
-    log: "logs/annotate_log.txt"
+    log: "logs/" + config["project"] + "_annotate_log.txt"
     params:
         file="config/annotation_arguments.txt"
     shell:

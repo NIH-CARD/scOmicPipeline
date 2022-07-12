@@ -2,7 +2,7 @@ The scPipeline is a pipeline using scanpy to do single-cell analysis. We hope to
 
 ## Installation
 
-1. First, make sure you have miniconda or conda set up. IF using Biowulf, first set up conda in your data directory, or use the miniconda modules on biowulf.
+1. First, make sure you have miniconda or conda set up. If using Biowulf, first set up conda in your data directory, or use the miniconda modules on biowulf.
 
 2. Then, install create a new environment in this directory using
 ```

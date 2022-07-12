@@ -12,7 +12,7 @@ conda env create -p scPipeline_env/ -f env_requirements.yml
 
 ## Setup
 
-1. Set the arguments of config/config_snakemake_bash.yml
+1. Set the arguments of config/config_snakemake_bash.yaml
 These are the name of the projet, which will be prepended to all output files, as well as
 whether to convert the final output database to h5ad format when finished.
 

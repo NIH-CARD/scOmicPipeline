@@ -8,7 +8,7 @@ The scPipeline is a pipeline using scanpy to do single-cell analysis. We hope to
 ```
 conda env create -p scPipeline_env/ -f env_requirements.yml
 ```
-3. Activate the environment using `conda activate -p scPipeline_env/` and you're almost ready to go.
+3. Activate the environment using `conda activate scPipeline_env/` and you're almost ready to go.
 
 ## Setup
 

@@ -1,4 +1,3 @@
---input_file=data/ngn_d0_28_raw.h5ad
 --n_genes_by_counts=9000
 --pct_counts_mt=15
 --exclude_highly_expressed=yes

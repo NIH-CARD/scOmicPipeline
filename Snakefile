@@ -44,7 +44,7 @@ rule all:
 
 
 rule qc_1:
-    input: "data/ngn_d0_28_raw.h5ad"
+    input: config["input_file"]
     output: temp(config["project"] + "_count_after_QC.pickle")
     log: "logs/" + config["project"] + "_qc_log.txt"
     params: 
@@ -53,6 +53,7 @@ rule qc_1:
         """
         python3 bash_pipeline/qc_1.py -o {output} \
             --project {config[project]} \
+            --input_file {input} \
             @{params.file} 2>&1 | \
         tee {log}
         """

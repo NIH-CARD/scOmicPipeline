@@ -1,2 +1,3 @@
 project: "test"
 convert_to_h5ad: False # Further downstream processing may require an h5ad file rather than a pickle
+input_file: "data/ngn_d0_28_raw.h5ad"

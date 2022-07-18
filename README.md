@@ -28,7 +28,8 @@ python3 bash_pipeline/plot_markers_4.py --help
 
 ## Running 
 Run the snakemake command, followed by how many cores to use. If using a Biowulf node,
-consider how many were requested for that node.
+consider how many were requested for that node. Do not use more than the maximum number 
+of cores available.
 ```
 snakmake -c4
 ```

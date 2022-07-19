@@ -10,6 +10,7 @@ import pandas as pd
 import scanpy as sc
 import json
 import helpers
+from helpers import MyArgumentParser
 from collections import namedtuple
 
 def python_annotate(input, output, **kwargs):
@@ -123,7 +124,7 @@ def annotate_2(adata, new_cluster_names, show=True, key=None, out=None, project=
 
 def main():
     
-    parser = argparse.ArgumentParser(fromfile_prefix_chars="@", description="Arguments for annotate cell types for clusters")
+    parser = MyArgumentParser(fromfile_prefix_chars="@", description="Arguments for annotate cell types for clusters")
     # optional argument
     parser.add_argument("-i", "--input_file", type=str, help="path of the input of 'after_ranking_gene.pickle'", default="after_ranking_gene.pickle")
     parser.add_argument("-m", "--marker_ref_path", type=str, help="path of panglao reference markers", \

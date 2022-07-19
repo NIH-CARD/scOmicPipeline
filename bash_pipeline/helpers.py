@@ -1,5 +1,13 @@
 from anndata import AnnData
 import pickle
+import argparse
+
+"""
+Allows multiple arguments per flag to be read
+"""
+class MyArgumentParser(argparse.ArgumentParser): 
+    def convert_arg_line_to_args(self, arg_line): 
+        return arg_line.split() 
 
 """
 Loads a pickle if no anndata object is provided
@@ -35,3 +43,4 @@ def get_save_name(folder="", prefix="", series=None, project="", figure_type="")
     save_name = prefix + project + series + "." + figure_type
     
     return str(save_name)
+

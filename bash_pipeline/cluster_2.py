@@ -8,6 +8,7 @@ import helpers
 from collections import namedtuple
 from anndata import AnnData
 import pickle
+from helpers import MyArgumentParser
 
 
 """
@@ -72,7 +73,7 @@ def cluster(args):
     return adata
 
 def main():
-    parser = argparse.ArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
+    parser = MyArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
     # basic parameters
     parser.add_argument("-i", "--input", type=str, help="the path of count_after_QC.pickle file", default="count_after_QC.pickle")
     parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)

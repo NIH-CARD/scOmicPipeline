@@ -5,6 +5,7 @@ import argparse
 import pandas as pd
 import scanpy as sc
 import helpers
+from helpers import MyArgumentParser
 from collections import namedtuple
 
 def setup(args):
@@ -68,7 +69,7 @@ def plot_makers(args):
         print("No such type of plot")
 
 def main():
-    parser = argparse.ArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq plotting")
+    parser = MyArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq plotting")
     # basic parameters
     parser.add_argument("-i", "--input_file", type=str, help="path of the input after_leiden.h5ad file", default="after_ranking_gene.h5ad")
     parser.add_argument("-d", "--dpi", type=int, help="resolution of the output figure", default=None)

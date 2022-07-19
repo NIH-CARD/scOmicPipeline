@@ -7,6 +7,7 @@ import scanpy as sc
 from collections import namedtuple
 from anndata import AnnData
 import helpers
+from helpers import MyArgumentParser
 
 """
 Python wrapper method for the markers method
@@ -82,7 +83,7 @@ def markers(args):
 
 def main():
 
-    parser = argparse.ArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
+    parser = MyArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
     # basic parameters
     parser.add_argument("-i", "--input", type=str, help="the path of after_leiden.h5ad", default="after_leiden.h5ad")
     parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)

@@ -10,3 +10,6 @@ data/
 
 __pycache__*
 .DS_Store
+
+.snakemake/
+.vscode

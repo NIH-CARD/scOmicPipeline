@@ -27,12 +27,36 @@ python3 bash_pipeline/plot_markers_4.py --help
 ```
 
 ## Running 
-Run the snakemake command, followed by how many cores to use. If using a Biowulf node,
-consider how many were requested for that node. Do not use more than the maximum number 
-of cores available.
+There are several steps to the pipeline. Ideally, create a shell script that runs each individually.
+Commands can be provided to the command line or in a script,
+or they can be listed in a file, specified with @ in the command line. For example, 
+bash_pipeline/scRNAPipeline qc --input_file myfile.h5ad @qc_arguments.txt.
+
+The steps are:
+qc -- requires an input_file. There is no default.
+cluster
+ranking
+plot_marker
+annotate
+
+Run each of these in order. Provide the project argument for each command. The project name will be prefixed to any output files, including alternative output filenames specified by the user. This is helpful for keeping separate runs of the pipeline separate. Therefore,
+we recommend the user always suggest a project name.
+For convenience and consistency, each command already has default
+output names for all files; if the user changes these names, the input_file name for the following command must be specified.
+Apart from the project argument
+and the input_file for the qc command, nearly all arguments are optional.
+
+An example can be found in the example_run.sh file.
+The example can be run by simply specifying an input file.
+You may use the script as template to achieve similar results.
 ```
-snakmake -c4
+bash example_run.sh data/my_data_file.h5ad
 ```
+
+Reference markers must be provided in json format.
+
+A utility is provided to convert pickle formmatted files to h5ad.
+Simply run bash_pipeline/scRNAPipeline convert_pickle my_pickle_file.pickle
 
 
 

@@ -3,10 +3,10 @@
 input_file=$1 # $1 means the first argument if this script is run from the command line
               # You can also place the actual file name here if you prefer.
 module_path="bash_pipeline"
-ref_path="../scanpy_markers/reference_markers/marker_panglao_brain_dic_update.json"
+ref_path="data/reference_markers/marker_panglao_brain_dic_update.json"
 echo "Processing ${input_file}"
 
-scRNAPipeline="${module_path}/scRNAPipeline.py"	
+scRNAPipeline="scRNAPipeline.py"	
 
 # qc
 python3 $scRNAPipeline qc -i ${input_file} \

@@ -34,7 +34,7 @@ or they can be listed in a file, specified with @ in the command line. For examp
 bash_pipeline/scRNAPipeline qc --input_file myfile.h5ad @qc_arguments.txt
 ```
 
-The steps are:
+The steps are:  
 qc -- requires an input_file. There is no default.  
 cluster  
 ranking  
@@ -50,7 +50,7 @@ and the input_file for the qc command, nearly all arguments are optional.
 
 An example can be found in the example_run.sh file.
 The example can be run by simply specifying an input file.
-You may use the script as template to achieve similar results.
+You may use the script as a template to achieve similar results.
 ```
 bash example_run.sh data/my_data_file.h5ad
 ```

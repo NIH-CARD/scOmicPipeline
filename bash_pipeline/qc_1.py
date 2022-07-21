@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 import scanpy as sc
 import helpers
-from helpers import MyArgumentParser
+from helpers import MultiLineArgAndFileParser
 
 #from bash_pipeline import helpers
 
@@ -99,7 +99,7 @@ def pca(adata, color_gene=None, show=None, project=None, figure_type=None, out=N
     return adata
 
 def main():
-    parser = MyArgumentParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq QC")
+    parser = MultiLineArgAndFileParser(fromfile_prefix_chars="@", description="Arguments for scRNA-seq QC")
     # basic parameters
     parser.add_argument("-p", "--project", type=str, help="a project name", default="")
     parser.add_argument("-i", "--input_file", type=str, help="the path of the input .h5 file or the matrix folder", default="filtered_feature_bc_matrix.h5")

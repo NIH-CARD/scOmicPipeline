@@ -204,18 +204,18 @@ def cluster_main(args):
 
     return adata
 
-### Marker Gene
+### Ranking
 """
-Python wrapper method for the markers method
+Python wrapper method for the ranking method
 """
-def python_marker(input, output, **kwargs):
+def python_ranking(input, output, **kwargs):
     kwargs["input"] = input
     kwargs["out"] = output
     kwargs.update(kwargs['marker_gene']) #collapse 
     args = namedtuple("args", kwargs.keys())(*kwargs.values()) # turn kwargs into an object
-    markers_main(args)
+    ranking_main(args)
 
-def markers_main(args):
+def ranking_main(args):
     """
     This is finding marker genes for each cell cluster.
     """
@@ -253,7 +253,7 @@ def markers_main(args):
     # default: groupby="leiden", groups="all", method="wilcoxon", key_added=None
     # sc.tl.rank_genes_groups(adata, 'leiden', method='wilcoxon')
     # sc.tl.rank_genes_groups(adata, 'leiden', groups=['0'], reference='1', method='wilcoxon')
-    sc.tl.rank_genes_groups(adata, groupby=groupby, groups=groups, reference=reference, method=method, key_added=key_added)
+    sc.tl.rank_genes_groups(adata, groupby=groupby, groups=groups, reference=reference, method=method, corr_method=corr_method, key_added=key_added)
     sc.pl.rank_genes_groups(adata, key=key_added, n_genes=n_genes, show=show, sharey=False, save=project+"."+figure_type)
 
 
@@ -282,7 +282,6 @@ def markers_main(args):
 
 
 ######## Plot Makers
-
 """
 Wrapper method for plot_makers
 """
@@ -303,8 +302,6 @@ def plot_makers_main(args):
     setup(args)
     
     input_file = args.input_file
-    dpi = args.dpi
-    figsize = args.figsize
     figure_type = args.figure_type
     show = args.show
     project = args.project if (args.project == "") else ("_" + args.project)
@@ -369,7 +366,7 @@ def get_ref_list(marker_ref_path):
     Read the reference marker (a dictionary saved as pickle)
     """
     with open(marker_ref_path, "r") as f:
-      marker_ref = json.load(f)
+        marker_ref = json.load(f)
 
     return marker_ref
 
@@ -489,7 +486,14 @@ def annotate_main(args):
         annotate(adata, final_type_dic, key=key, out=out, project=project, figure_type=figure_type)
 
 
+def convert_pickle_main(args):
+    input_file = args.input_file
+    output_name = os.path.split(input_file)[0] + os.path.splitext(os.path.split(input_file)[1])[0] + ".h5ad"
 
+   
+    with open(input_file, "rb") as f:
+        adata = pickle.load(f)
+        adata.write(output_name, compression='gzip')
 
 def main():
     # top-level parser
@@ -547,15 +551,15 @@ def main():
 
     cluster_parser.set_defaults(func=cluster_main)
     
-    ### MARKERS
+    ### RANKING
     
-    marker_parser = subparsers.add_parser("Markers", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
+    marker_parser = subparsers.add_parser("ranking", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Ranking")
     # basic parameters
-    marker_parser.add_argument("-i", "--input", type=str, help="the path of after_leiden.h5ad", default="after_leiden.h5ad")
+    marker_parser.add_argument("-i", "--input", type=str, help="the path of after_leiden.pickle", default="after_leiden.pickle")
     marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
     marker_parser.add_argument("-f", "--figure_type", type=str, help="the type of plots, e.g., png, pdf, or svg", default="pdf")
     marker_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
-    marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.h5ad")
+    marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.pickle")
     marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
     marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block outputing figures on the screen by providing no, false, or 0")
 
@@ -569,16 +573,14 @@ def main():
     marker_parser.add_argument("-g", "--groups", type=str, nargs="+", help="the subset cell groups to compare, using the group names in anndata.obs, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']", default="all")
     marker_parser.add_argument("-k", "--key_added", type=str, help="the key in adata.uns indicating where the information to be saved to")
 
-    marker_parser.set_defaults(func=markers_main)
+    marker_parser.set_defaults(func=ranking_main)
     
 
     ### PLOT_MARKER 
     plot_marker_parser = subparsers.add_parser("plot_marker", fromfile_prefix_chars="@", description="Arguments for scRNA-seq plotting")
     
     # basic parameters
-    plot_marker_parser.add_argument("-i", "--input_file", type=str, help="path of the input after_leiden.h5ad file", default="after_ranking_gene.h5ad")
-    plot_marker_parser.add_argument("-d", "--dpi", type=int, help="resolution of the output figure", default=None)
-    plot_marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="size of output figure, use 2 numbers, e.g., 2 2")
+    plot_marker_parser.add_argument("-i", "--input_file", type=str, help="path of the input after_leiden.pickle file", default="after_ranking_gene.pickle")
     plot_marker_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
     plot_marker_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
     plot_marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
@@ -615,6 +617,11 @@ def main():
     anno_parser.add_argument("-n", "--new_cluster_names", type=str, nargs="+", help="provide the cell type name corresponding to each cluster")
 
     anno_parser.set_defaults(func=annotate_main)
+
+    ### CONVERT TO H5AD
+    convert_parser = subparsers.add_parser('convert_pickle', description="Convert from pickle to h5ad")
+    convert_parser.add_argument("input_file", type=str, help="path of the file to convert.", default="after_annotated.pickle")
+    convert_parser.set_defaults(func=convert_pickle_main)
 
     args = parser.parse_args()
     args.func(args)

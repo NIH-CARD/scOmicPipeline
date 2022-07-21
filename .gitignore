@@ -1,7 +1,5 @@
 figures/
 logs/
-data/
-
 
 *.pdf
 *.pickle

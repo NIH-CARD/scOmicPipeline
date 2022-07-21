@@ -501,8 +501,8 @@ def main():
     
     # basic parameters
     qc_parser.add_argument("-p", "--project", type=str, help="a project name", default="")
-    qc_parser.add_argument("-i", "--input_file", type=str, help="the path of the input .h5 file or the matrix folder", default="filtered_feature_bc_matrix.h5")
-    qc_parser.add_argument("-o", "--out", type=str, help="the file name prefix of the output anndata", default="count_after_QC.pickle")
+    qc_parser.add_argument("-i", "--input_file", type=str, help="the path of the input .h5 file or the matrix folder", required=True)
+    qc_parser.add_argument("-o", "--out", type=str, help="the path and file name of the output anndata", default="count_after_QC.pickle")
     qc_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
     qc_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2", default=None)
     qc_parser.add_argument("-f", "--figure_type", type=str, help="the type of the output figure, e.g., pdf, png, or svg", default="pdf")
@@ -523,11 +523,11 @@ def main():
     cluster_parser = subparsers.add_parser("cluster", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
     
     # basic parameters
-    cluster_parser.add_argument("-i", "--input", type=str, help="the path of count_after_QC.pickle file", default="count_after_QC.pickle")
+    cluster_parser.add_argument("-i", "--input", type=str, help="the path and name of count_after_QC.pickle file", default="count_after_QC.pickle")
     cluster_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
     cluster_parser.add_argument("-f", "--figure_type", type=str, help="the export type of plots, e.g., png, pdf, or svg", default="pdf")
     cluster_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
-    cluster_parser.add_argument("-o", "--out", type=str, help="the file name to save the anndata object", default="after_leiden.pickle")
+    cluster_parser.add_argument("-o", "--out", type=str, help="the path and file name to save the anndata object", default="after_leiden.pickle")
     cluster_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of output figure, use 2 numbers, e.g., 2 2")
     cluster_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
     
@@ -555,7 +555,7 @@ def main():
     marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
     marker_parser.add_argument("-f", "--figure_type", type=str, help="the type of plots, e.g., png, pdf, or svg", default="pdf")
     marker_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
-    marker_parser.add_argument("-o", "--out", type=str, help="the name of the output anndata", default="after_ranking_gene.h5ad")
+    marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.h5ad")
     marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
     marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block outputing figures on the screen by providing no, false, or 0")
 
@@ -603,7 +603,7 @@ def main():
     anno_parser.add_argument("-i", "--input_file", type=str, help="path of the input of 'after_ranking_gene.pickle'", default="after_ranking_gene.pickle")
     anno_parser.add_argument("-m", "--marker_ref_path", type=str, help="path of panglao reference markers", \
         default="../scanpy_scripts/reference_markers/marker_panglao_brain_dic_update.json")
-    anno_parser.add_argument("-o", "--out", type=str, help="path of the anndata object to be saved", default="after_annotated.pickle")
+    anno_parser.add_argument("-o", "--out", type=str, help="the path of the anndata object to be saved", default="after_annotated.pickle")
     anno_parser.add_argument("-d", "--dpi", type=int, help="resolution of the output figure", default=80)
     anno_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="size of output figure, use 2 numbers, e.g., 2 2")
     anno_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")

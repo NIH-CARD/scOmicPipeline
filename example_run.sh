@@ -6,7 +6,7 @@ module_path="bash_pipeline"
 ref_path="data/reference_markers/marker_panglao_brain_dic_update.json"
 echo "Processing ${input_file}"
 
-scRNAPipeline="scRNAPipeline.py"	
+scRNAPipeline="${module_path}/scRNAPipeline"	
 
 # qc
 python3 $scRNAPipeline qc -i ${input_file} \
@@ -30,29 +30,31 @@ echo "+++++++++++++++\n"
 
 # marker genes
 python3 $scRNAPipeline ranking --project testing \
-                               -b leiden_1.0 
-                               -k rank_genes_groups_r1.0
+                               -k rank_genes_groups_r1.0 \
+                               --groupby leiden_1.0 \
+                               --show no
 echo "finished ranking"
 echo "+++++++++++++++\n"
 
 # plot markers for neurons: 
+#python3 $scRNAPipeline plot_marker --project testing \
+#                                   -S no \
+#                                   -p neuron_marker \
+#                                   -t umap \
+#                                   -g MAP2
+
 python3 $scRNAPipeline plot_marker --project testing \
                                    -S no \
-                                   -p neuron_marker \
                                    -t umap \
-                                   -g MAP2
-python3 $scRNAPipeline plot_marker --project testing \
-                                   -S no \
-                                   -p glutamatergic \
-                                   -t umap \
-                                   -g SLC17A7 SLC17A6 GRIN1 GRIN2B GLS GLUL
+                                   -g MAP2 
 echo "finished plotting\n"
 echo "+++++++++++++++\n"
 
 # annotate
 python3 $scRNAPipeline annotate --project testing \
-                                -r rank_genes_groups_r1.0 
-                                -k leiden_1.0 
+                                -r rank_genes_groups_r1.0 \
+                                -k leiden_1.0 \
+                                -S no \
                                 -m ${ref_path}
 echo "finished annotating"
 echo "+++++++++++++++\n"

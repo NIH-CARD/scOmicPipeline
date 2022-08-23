@@ -11,3 +11,11 @@ __pycache__*
 
 .snakemake/
 .vscode
+
+# build artifacts
+dist/
+
+*.egg-info/
+
+# Other things in same folder
+MAESTRO/

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-
 import argparse
 import json
 import os
 import pickle
+import h5py
 from collections import namedtuple
 
-import h5py
+#import sys
+#sys.path.append(os.getcwd)
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,8 +16,8 @@ import scanpy as sc
 import seaborn as sns
 from anndata import AnnData
 
-import helpers 
-from helpers import MultiLineArgAndFileParser
+from . import helpers 
+from .helpers import MultiLineArgAndFileParser
 
 
 #### QC
@@ -425,7 +427,7 @@ def final_types(cell_types_all):
     return final_type_dic
 
 # add the annotation to adata
-def annotate(adata, final_type_dic, key=None, out=None, project=None, figure_type=None):
+def annotate(adata, final_type_dic, key=None, out=None, project=None, figure_type=None, show=True):
     """
     Add the cell type annotation to the adata using a cluster-type dictionary, 
     instead of overwrite the original cluster label.
@@ -433,7 +435,7 @@ def annotate(adata, final_type_dic, key=None, out=None, project=None, figure_typ
     adata.obs[key+"_annotation"] = adata.obs[key].replace(final_type_dic)
     counts_per_type = adata.obs[key+"_annotation"].value_counts()
     per_type = 100*counts_per_type/counts_per_type.sum()
-    sc.pl.umap(adata, color=key+"_annotation", save=project+"_"+key+"_ann."+figure_type)
+    sc.pl.umap(adata, show=show,  color=key+"_annotation", save=project+"_"+key+"_ann."+figure_type)
     helpers.dump_to_pickle(out, adata)
 
     return per_type
@@ -485,7 +487,7 @@ def annotate_main(args):
     if new_cluster_names:
         annotate_2(adata, new_cluster_names, show=show, key=key, out=out, project=project, figure_type=figure_type)
     else:
-        annotate(adata, final_type_dic, key=key, out=out, project=project, figure_type=figure_type)
+        annotate(adata, final_type_dic, key=key, out=out, project=project, figure_type=figure_type, show=show)
 
 
 def convert_pickle_main(args):

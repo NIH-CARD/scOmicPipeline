@@ -6,10 +6,10 @@ module_path="bash_pipeline"
 ref_path="data/reference_markers/marker_panglao_brain_dic_update.json"
 echo "Processing ${input_file}"
 
-scRNAPipeline="${module_path}/scRNAPipeline"	
+scRNAPipeline="scrnapipeline"
 
 # qc
-python3 $scRNAPipeline qc -i ${input_file} \
+$scRNAPipeline qc -i ${input_file} \
                           --project testing \
                           --n_genes_by_counts 9000 \
                           --pct_counts_mt 15 \
@@ -19,7 +19,7 @@ echo "finished QC"
 echo "+++++++++++++++\n"
 
 # cluster
-python3 $scRNAPipeline cluster --project testing \
+$scRNAPipeline cluster --project testing \
                                -r 1.0 \
                                -k leiden_1.0 \
                                -C leiden_1.0 \
@@ -29,7 +29,7 @@ echo "finished clustering"
 echo "+++++++++++++++\n"
 
 # marker genes
-python3 $scRNAPipeline ranking --project testing \
+$scRNAPipeline ranking --project testing \
                                -k rank_genes_groups_r1.0 \
                                --groupby leiden_1.0 \
                                --show no
@@ -43,7 +43,7 @@ echo "+++++++++++++++\n"
 #                                   -t umap \
 #                                   -g MAP2
 
-python3 $scRNAPipeline plot_marker --project testing \
+$scRNAPipeline plot_marker --project testing \
                                    -S no \
                                    -t umap \
                                    -g MAP2 
@@ -51,7 +51,7 @@ echo "finished plotting\n"
 echo "+++++++++++++++\n"
 
 # annotate
-python3 $scRNAPipeline annotate --project testing \
+$scRNAPipeline annotate --project testing \
                                 -r rank_genes_groups_r1.0 \
                                 -k leiden_1.0 \
                                 -S no \

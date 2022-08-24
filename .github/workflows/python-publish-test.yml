@@ -31,32 +31,3 @@ jobs:
       with:
         password: ${{ secrets.CARD_SCRNASEQ_PIPELINE_GITHUB_TESTPYPI }}
         repository_url: https://test.pypi.org/legacy/
-        
-        
-name: Publish Python 🐍 distributions 📦 to PyPI
-
-on: 
-    release:
-    types: [published]
-
-jobs:
-  build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@master
-    - name: Set up Python 
-      uses: actions/setup-python@v3
-    
-    - name: Install pypa/build and build a binary wheel and a source tarball
-      run: >-
-        python3 -m pip install --upgrade build --user &&
-        python3 -m build --sdist --wheel --outdir dist/
-        
-        
-    - name: Publish distribution 📦 to PyPI
-      if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.CARD_SCRNASEQ_PIPELINE_GITHUB_PYPI }}

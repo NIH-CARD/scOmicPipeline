@@ -22,6 +22,21 @@ def choose_adata_src(input):
     return adata
 
 """
+Create an input name based on the provided name 
+and the project name
+"""
+def get_input_name(project, inp):
+    return project + '_' + inp
+
+
+"""
+Get an output name based on the provided name
+and the project name.
+"""
+def get_output_name(project, out):
+    return project + '_' + out
+
+"""
 Dump to pickle file
 """
 def dump_to_pickle(out, adata):

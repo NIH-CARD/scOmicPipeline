@@ -136,11 +136,12 @@ echo "+++++++++++++++\n"
 ### Other info
 Reference markers must be provided in json format.
 
-A utility is provided to convert pickle formatted files to h5ad.
+A utility is provided to convert pickle formatted files to h5ad.  
 `scrnapipeline convert_pickle my_pickle_file.pickle`
 
 ## Cleanup
-After running, there will be several pickle files. The only one that is important is the (your_project_name)_after_annotate.pickle file.
+After running, there may be several pickle files. The only one that is important is the (your_project_name)_after_annotate.pickle file.
+When using the pip installable, the default is to automatically delete all pickle files except the after_annotate.pickle file as each becomes unnecessary following the successful completion of each step. When using the python hooks, however, that is not true and must be done manually. This is done for backwards compatibility.
 Feel free to delete the rest as they may be large. Depending on space, it may be necessary to run the commands one at a time in order to delete
 the previous pickle file.
 

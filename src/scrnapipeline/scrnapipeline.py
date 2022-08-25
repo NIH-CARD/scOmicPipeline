@@ -16,8 +16,8 @@ import scanpy as sc
 import seaborn as sns
 from anndata import AnnData
 
-from . import helpers 
-from .helpers import MultiLineArgAndFileParser
+from utils import helpers 
+from utils.helpers import MultiLineArgAndFileParser
 
 
 #### QC
@@ -115,11 +115,11 @@ def qc_main(args):
 
     input_file= args.input_file
     out = args.out
+    out = helpers.get_output_name(args.project, out)
     dpi = args.dpi
     figsize = args.figsize
     figure_type = args.figure_type
     show = args.show
-    project = args.project if (args.project == "") else ("_" + args.project)
 
     min_genes = args.min_genes
     min_cells = args.min_cells
@@ -128,6 +128,8 @@ def qc_main(args):
     n_top = args.n_top
     color_gene = args.color_gene
     exclude_highly_expressed = args.exclude_highly_expressed
+
+    project = args.project if (args.project == "") else ("_" + args.project)
 
     print("The arguments are: ", args)
     print()
@@ -160,7 +162,9 @@ def cluster_main(args):
     print(f"The arguments are {args}")
     
     input = args.input
+    input = helpers.get_input_name(args.project, input)
     out = args.out
+    out = helpers.get_output_name(args.project, out)
     dpi = args.dpi
     figsize = args.figsize
     figure_type = args.figure_type
@@ -175,6 +179,8 @@ def cluster_main(args):
     #metric = args.metric
     color_gene = args.color_gene
     key_added = args.key_added
+    no_deletion = args.no_deletion
+
 
     # set scanpy parameters
     sc.settings.verbosity = 3  # verbosity: errors (0), warnings (1), info (2), hints (3)
@@ -184,7 +190,7 @@ def cluster_main(args):
     # default figsize=None, means it doesn't change the seaborn defined default parameters
     sc.settings.set_figure_params(dpi=dpi, facecolor='white', figsize=figsize)
     
-    # load freom pickle if no anndata object provided
+    # load from pickle if no anndata object provided
     adata = helpers.choose_adata_src(input)    
 
     ### Computing, embedding, and clustering the neighborhood graph
@@ -203,6 +209,10 @@ def cluster_main(args):
 
     # Dump adata out
     helpers.dump_to_pickle(out, adata)
+
+    # Delete the input pickle if no_deletion has not been set
+    if not no_deletion:
+        os.remove(input)
 
     return adata
 
@@ -226,7 +236,9 @@ def ranking_main(args):
     print("The arguments are: ", args)
 
     input = args.input
+    input = helpers.get_input_name(args.project, input)
     out = args.out
+    out = helpers.get_output_name(args.project, out)
     dpi = args.dpi
     figsize = args.figsize
     figure_type = args.figure_type
@@ -241,6 +253,8 @@ def ranking_main(args):
     reference = args.reference
     groups = args.groups
     key_added = args.key_added
+    no_deletion = args.no_deletion
+
 
     # set scanpy parameters
     # reduce the verbosity from 3 to 2 in the setting of logging output
@@ -279,6 +293,10 @@ def ranking_main(args):
     # Dump adata out
     helpers.dump_to_pickle(out, adata)
 
+    # Delete the input pickle if no_deletion has not been set
+    if not no_deletion:
+        os.remove(input)
+
     return adata
 
 
@@ -303,6 +321,7 @@ def plot_makers_main(args):
 
     
     input_file = args.input_file
+    input_file = helpers.get_input_name(args.project, input_file)
     figure_type = args.figure_type
     dpi = args.dpi
     figsize = args.figsize
@@ -363,7 +382,6 @@ def python_annotate(input, output, **kwargs):
         annotate_2(adata, args.new_cluster_names, key=args.key, out=args.out, project=args.project, figure_type=args.figure_type)
     else:
         annotate(adata, final_type_dic, key=args.key, out=args.out, project=args.project, figure_type=args.figure_type)
-
     
 def get_ref_list(marker_ref_path):
     """
@@ -455,9 +473,11 @@ def annotate_2(adata, new_cluster_names, show=True, key=None, out=None, project=
 
 def annotate_main(args):
     input_file = args.input_file
+    input_file = helpers.get_input_name(args.project, input_file)
     marker_ref_path = args.marker_ref_path
     dpi = args.dpi
     out = args.out
+    out = helpers.get_output_name(args.project, out)
     figsize = args.figsize
     figure_type = args.figure_type
     show = args.show
@@ -466,6 +486,8 @@ def annotate_main(args):
     key = args.key
     show = args.show
     new_cluster_names = args.new_cluster_names
+    no_deletion = args.no_deletion
+
 
     print("\nThe arguments are: ", args)
 
@@ -488,6 +510,10 @@ def annotate_main(args):
         annotate_2(adata, new_cluster_names, show=show, key=key, out=out, project=project, figure_type=figure_type)
     else:
         annotate(adata, final_type_dic, key=key, out=out, project=project, figure_type=figure_type, show=show)
+
+    # Delete the input pickle if no_deletion has not been set
+    if not no_deletion:
+        os.remove(input_file)
 
 
 def convert_pickle_main(args):
@@ -538,6 +564,7 @@ def main():
     cluster_parser.add_argument("-o", "--out", type=str, help="the path and file name to save the anndata object", default="after_leiden.pickle")
     cluster_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of output figure, use 2 numbers, e.g., 2 2")
     cluster_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
+    cluster_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
     
     # umap parmeters
     cluster_parser.add_argument("-n", "--n_neighbors", type=int, help="the size of local neiborhood for manifold approximation", default=15)
@@ -566,6 +593,7 @@ def main():
     marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.pickle")
     marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
     marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block outputing figures on the screen by providing no, false, or 0")
+    marker_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 
     # rank gene parmeters
     marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
@@ -621,12 +649,13 @@ def main():
     anno_parser.add_argument("-r", "--rank_key", type=str, help="Choose the key of rank_genes_groups to be compared to marker_ref, \
     .g., rank_genes_groups", default="rank_genes_groups_r0.6")
     anno_parser.add_argument("-n", "--new_cluster_names", type=str, nargs="+", help="provide the cell type name corresponding to each cluster")
+    anno_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 
     anno_parser.set_defaults(func=annotate_main)
 
     ### CONVERT TO H5AD
     convert_parser = subparsers.add_parser('convert_pickle', description="Convert from pickle to h5ad")
-    convert_parser.add_argument("input_file", type=str, help="path of the file to convert.", default="after_annotated.pickle")
+    convert_parser.add_argument("input_file", type=str, help="path of the file to convert, including any project name.", default="after_annotated.pickle")
     convert_parser.set_defaults(func=convert_pickle_main)
 
     args = parser.parse_args()

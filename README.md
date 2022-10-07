@@ -1,7 +1,20 @@
 [![PyPI version](https://badge.fury.io/py/card-scrnaseq-pipeline.svg)](https://badge.fury.io/py/card-scrnaseq-pipeline)
 
-The scPipeline is a pipeline using scanpy to do single-cell analysis. We hope to make new additions to that soon.
+The scPipeline is a pipeline to do single-cell and multiome analysis. We hope to make new additions to that soon.
 
+
+
+### Table of Contents 
+0. [Installation](#0)
+1. [Single Cell Analysis using Scanpy](#1)
+    1. [Running Each Step](#2)
+    2. [Other info](#3)
+    3. [Cleanup](#4)
+2. [Multiome analysis using scvi tools](#5)
+    1. [Running](#6)
+
+
+<a id="0"></a>
 ## Installation
 There are two installation methods:  
 1. Install the full CLI tool:
@@ -16,7 +29,8 @@ There are two installation methods:
     3. Activate the environment using `conda activate scPipeline_env/` and you're almost ready to go.
 
 
-## Running 
+<a id="1"></a>
+## Single Cell Analysis Using Scanpy 
 There are several steps to the pipeline. We recommend creating a shell script to run each command consecutively.
 Commands can be provided to the command line or in a script,
 or they can be listed in a file, specified with @ in the command line. For example, 
@@ -39,6 +53,7 @@ output names for all files; if the user changes these names, the input_file name
 Apart from the project argument
 and the input_file for the qc command, nearly all arguments are optional.
 
+<a id="2"></a>
 ### Running each step
 To learn about the possible arguments of each subcaommand and what each means, call each command with the --help flag.
 For example:
@@ -133,18 +148,32 @@ echo "finished annotating"
 echo "+++++++++++++++\n"
 ```
 
+
+<a id="3"></a>
 ### Other info
 Reference markers must be provided in json format.
 
 A utility is provided to convert pickle formatted files to h5ad.  
 `scrnapipeline convert_pickle my_pickle_file.pickle`
 
-## Cleanup
+
+<a id="4"></a>
+### Cleanup
 After running, there may be several pickle files. The only one that is important is the (your_project_name)_after_annotate.pickle file.
 When using the pip installable, the default is to automatically delete all pickle files except the after_annotate.pickle file as each becomes unnecessary following the successful completion of each step. When using the python hooks, however, that is not true and must be done manually. This is done for backwards compatibility.
 Feel free to delete the rest as they may be large. Depending on space, it may be necessary to run the commands one at a time in order to delete
 the previous pickle file.
 
 
-
-
+<a id="5"></a>
+## Multiome analysis using scvi tools
+scvi tools creates a probabilistic model from multimodal data. This allows it to take in unimodal data as well and infer the missing modality. When working with scvi tools, input the paired data first, then scRNA-seq data, then scATAC-seq data. When adding unimodal ATAC-seq data, care must be taken to preprocess it so that it shares the same peaks as the other data. 
+    
+<a id="6"></a>
+### Running
+    
+    scrnapipeline multiome --mm_input_folder path/to/my/input
+    (optional) scrnapipeline multiome --mm_input_folder path/to/multimodal input --scRNA_input path/to/scRNA/input
+    (optional) scrnapipeline multiome --mm_input_folder path/to/multimodal input --scATAC_input path/to/scATAC/input
+    (optional) combine all three datatypes
+where the input folder(s) should contain a matrix, barcodes file, and features file.  

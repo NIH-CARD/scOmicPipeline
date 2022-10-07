@@ -5,6 +5,7 @@ import os
 import pickle
 import h5py
 from collections import namedtuple
+import sys
 
 #import sys
 #sys.path.append(os.getcwd)
@@ -525,142 +526,188 @@ def convert_pickle_main(args):
         adata = pickle.load(f)
         adata.write(output_name, compression='gzip')
 
-def main():
-    # top-level parser
-    parser = MultiLineArgAndFileParser()
-    subparsers = parser.add_subparsers()
 
-    ### QC
-    qc_parser = subparsers.add_parser("qc", fromfile_prefix_chars="@", description="Arguments for scRNA-seq QC")
+#### SCVI_TOOLS FUNCTIONS ####
+def scvi_main():
+    import scvi
+
+#def read_scvi_data():
+
+# This takes inspiration from the follwoing link: https://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
+class MyPipeline(object):
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description='The suite of CARD scPipelines',
+            usage= '''scrnapipeline <command> [<args>]
+
+The possible commands are:
+    scanpy      Do qc and other basic scRNA-seq tasks
+    scvi_tools  Multiome scRNA and scATAC capability, including model-building
+''')
+        parser.add_argument('command', help='Subcommand to run')
+        # parse_args defualts to [1:] for args, but you need to 
+        # exclude the rest of the args too, or validation will fail
+        args = parser.parse_args(sys.argv[1:2])
+        if not hasattr(self, args.command):
+            print('Unrecognized command')
+            parser.print_help()
+            exit(1)
+        # use dispatch pattern to invoke method with same name
+        getattr(self, args.command)()
+    def scanpy(self):
+        parser = argparse.ArgumentParser(
+            description='qc and other basic scRNA-seq tasks')
+            # prefixing the argument with -- means it's optional
+        parser.add_argument('--path', type=str, help='input path')
+        subparser = parser.add_subparsers(title="scanpy commands", help="Run any of these commands with --help to learn more about them.")
+        qc_parser = subparser.add_parser("qc", fromfile_prefix_chars="@", description="Arguments for scRNA-seq QC")
     
-    # basic parameters
-    qc_parser.add_argument("-p", "--project", type=str, help="a project name", default="")
-    qc_parser.add_argument("-i", "--input_file", type=str, help="the path of the input .h5 file or the matrix folder", required=True)
-    qc_parser.add_argument("-o", "--out", type=str, help="the path and file name of the output anndata", default="count_after_QC.pickle")
-    qc_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
-    qc_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2", default=None)
-    qc_parser.add_argument("-f", "--figure_type", type=str, help="the type of the output figure, e.g., pdf, png, or svg", default="pdf")
-    qc_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
+        # basic parameters
+        qc_parser.add_argument("-p", "--project", type=str, help="a project name", default="")
+        qc_parser.add_argument("-i", "--input_file", type=str, help="the path of the input .h5 file or the matrix folder", required=True)
+        qc_parser.add_argument("-o", "--out", type=str, help="the path and file name of the output anndata", default="count_after_QC.pickle")
+        qc_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
+        qc_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2", default=None)
+        qc_parser.add_argument("-f", "--figure_type", type=str, help="the type of the output figure, e.g., pdf, png, or svg", default="pdf")
+        qc_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
     
-    # filtering and plotting parameters
-    qc_parser.add_argument("-g", "--min_genes", type=int, help="cell filter: the minimal number of genes which a cell should have", default=200)
-    qc_parser.add_argument("-c", "--min_cells", type=int, help="gene filter: the minimal number of cells which a gene should be in", default=3)
-    qc_parser.add_argument("-n", "--n_genes_by_counts", type=int, help="the threthold of gene counts", default=8000)
-    qc_parser.add_argument("-m", "--pct_counts_mt", type=float, help="the threthold of mitochondrial genes percentage", default=5.0)
-    qc_parser.add_argument("-t", "--n_top", type=int, help="the number of genes to plot in the highest expressed gene plot", default=20)
-    qc_parser.add_argument("-C", "--color_gene", type=str, help="the gene whoes expression level is to be colored in the pca plot", default="MAP2")
-    qc_parser.add_argument("-e", "--exclude_highly_expressed", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="exclude highly expressed genes when do normalization by providing yes, no, or 1 ")
-    
-    qc_parser.set_defaults(func=qc_main)
+        # filtering and plotting parameters
+        qc_parser.add_argument("-g", "--min_genes", type=int, help="cell filter: the minimal number of genes which a cell should have", default=200)
+        qc_parser.add_argument("-c", "--min_cells", type=int, help="gene filter: the minimal number of cells which a gene should be in", default=3)
+        qc_parser.add_argument("-n", "--n_genes_by_counts", type=int, help="the threthold of gene counts", default=8000)
+        qc_parser.add_argument("-m", "--pct_counts_mt", type=float, help="the threthold of mitochondrial genes percentage", default=5.0)
+        qc_parser.add_argument("-t", "--n_top", type=int, help="the number of genes to plot in the highest expressed gene plot", default=20)
+        qc_parser.add_argument("-C", "--color_gene", type=str, help="the gene whoes expression level is to be colored in the pca plot", default="MAP2")
+        qc_parser.add_argument("-e", "--exclude_highly_expressed", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="exclude highly expressed genes when do normalization by providing yes, no, or 1 ")
+        
+        qc_parser.set_defaults(func=qc_main)
 
-    ### CLUSTER
-    cluster_parser = subparsers.add_parser("cluster", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
-    
-    # basic parameters
-    cluster_parser.add_argument("-i", "--input", type=str, help="the path and name of count_after_QC.pickle file", default="count_after_QC.pickle")
-    cluster_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
-    cluster_parser.add_argument("-f", "--figure_type", type=str, help="the export type of plots, e.g., png, pdf, or svg", default="pdf")
-    cluster_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
-    cluster_parser.add_argument("-o", "--out", type=str, help="the path and file name to save the anndata object", default="after_leiden.pickle")
-    cluster_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of output figure, use 2 numbers, e.g., 2 2")
-    cluster_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
-    cluster_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
-    
-    # umap parmeters
-    cluster_parser.add_argument("-n", "--n_neighbors", type=int, help="the size of local neiborhood for manifold approximation", default=15)
-    cluster_parser.add_argument("-P", "--n_pcs", type=int, help="the number of PCs to use", default=None)
-    cluster_parser.add_argument("-m", "--method", type=str, help="the method for neighborhood graph, either ‘umap’, ‘gauss’, ‘rapids’", default="umap")
-    cluster_parser.add_argument("-M", "--metric", type=str, help="the metric for neighborhood graph, [‘cityblock’, ‘cosine’, ‘euclidean’, ‘l1’, ‘l2’, ‘manhattan’], Literal[‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘correlation’, ‘dice’, ‘hamming’, ‘jaccard’, ‘kulsinski’, ‘mahalanobis’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’],", default="euclidean")
+        ### CLUSTER
+        cluster_parser = subparser.add_parser("cluster", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Clustering")
+        
+        # basic parameters
+        cluster_parser.add_argument("-i", "--input", type=str, help="the path and name of count_after_QC.pickle file", default="count_after_QC.pickle")
+        cluster_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
+        cluster_parser.add_argument("-f", "--figure_type", type=str, help="the export type of plots, e.g., png, pdf, or svg", default="pdf")
+        cluster_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
+        cluster_parser.add_argument("-o", "--out", type=str, help="the path and file name to save the anndata object", default="after_leiden.pickle")
+        cluster_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of output figure, use 2 numbers, e.g., 2 2")
+        cluster_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block output figures on the screen by providing no, false, or 0")
+        cluster_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
+        
+        # umap parmeters
+        cluster_parser.add_argument("-n", "--n_neighbors", type=int, help="the size of local neiborhood for manifold approximation", default=15)
+        cluster_parser.add_argument("-P", "--n_pcs", type=int, help="the number of PCs to use", default=None)
+        cluster_parser.add_argument("-m", "--method", type=str, help="the method for neighborhood graph, either ‘umap’, ‘gauss’, ‘rapids’", default="umap")
+        cluster_parser.add_argument("-M", "--metric", type=str, help="the metric for neighborhood graph, [‘cityblock’, ‘cosine’, ‘euclidean’, ‘l1’, ‘l2’, ‘manhattan’], Literal[‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘correlation’, ‘dice’, ‘hamming’, ‘jaccard’, ‘kulsinski’, ‘mahalanobis’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’],", default="euclidean")
 
-    # leiden parameters
-    cluster_parser.add_argument("-r", "--resolution", type=float, help="the resolution for leiden", default=1.0)
+        # leiden parameters
+        cluster_parser.add_argument("-r", "--resolution", type=float, help="the resolution for leiden", default=1.0)
 
-    # color parameters and key names to be stored in adata
-    cluster_parser.add_argument("-C", "--color_gene", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B), a key of leiden (e.g., 'leiden' or other key_added like 'leiden_0.6'), or both as color hues in umap plot", default="leiden")
-    # parser.add_argument("-g", "--gene_list", type=str, nargs="+", action="store", dest="list", help="define a list of genes to show in umap, e.g., MAP2 TEME199 NIL", default=['leiden'])
-    cluster_parser.add_argument("-k", "--key_added", type=str, help="the key name of a ledien anaysis to be addeed to anndata", default='leiden')
+        # color parameters and key names to be stored in adata
+        cluster_parser.add_argument("-C", "--color_gene", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B), a key of leiden (e.g., 'leiden' or other key_added like 'leiden_0.6'), or both as color hues in umap plot", default="leiden")
+        # parser.add_argument("-g", "--gene_list", type=str, nargs="+", action="store", dest="list", help="define a list of genes to show in umap, e.g., MAP2 TEME199 NIL", default=['leiden'])
+        cluster_parser.add_argument("-k", "--key_added", type=str, help="the key name of a ledien anaysis to be addeed to anndata", default='leiden')
 
-    cluster_parser.set_defaults(func=cluster_main)
-    
-    ### RANKING
-    
-    marker_parser = subparsers.add_parser("ranking", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Ranking")
-    # basic parameters
-    marker_parser.add_argument("-i", "--input", type=str, help="the path of after_leiden.pickle", default="after_leiden.pickle")
-    marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
-    marker_parser.add_argument("-f", "--figure_type", type=str, help="the type of plots, e.g., png, pdf, or svg", default="pdf")
-    marker_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
-    marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.pickle")
-    marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
-    marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block outputing figures on the screen by providing no, false, or 0")
-    marker_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
+        cluster_parser.set_defaults(func=cluster_main)
+        
+        ### RANKING
+        
+        marker_parser = subparser.add_parser("ranking", fromfile_prefix_chars="@", description="Arguments for scRNA-seq Ranking")
+        # basic parameters
+        marker_parser.add_argument("-i", "--input", type=str, help="the path of after_leiden.pickle", default="after_leiden.pickle")
+        marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
+        marker_parser.add_argument("-f", "--figure_type", type=str, help="the type of plots, e.g., png, pdf, or svg", default="pdf")
+        marker_parser.add_argument("-p", "--project", type=str, help="the project name", default="")
+        marker_parser.add_argument("-o", "--out", type=str, help="the path and name of the output anndata", default="after_ranking_gene.pickle")
+        marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
+        marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="block outputing figures on the screen by providing no, false, or 0")
+        marker_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 
-    # rank gene parmeters
-    marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
-    marker_parser.add_argument("-n", "--n_genes", type=int, help="the number of top marker genes to plot", default=25)
-    marker_parser.add_argument("-N", "--export_num", type=int, help="the number of top marker genes to be exported to csv", default=50)
-    marker_parser.add_argument("-m", "--method", type=str, help="the method for differential expression analysis, either t-test, wilcoxon, t-test_overestim_var, logreg", default="wilcoxon")
-    marker_parser.add_argument("-c", "--corr_method", type=str, help="the p-value correction method, either benjamini-hochberg or bonferroni", default="benjamini-hochberg")
-    marker_parser.add_argument("-R", "--reference", type=str, help="the cell group to be compared with", default="rest")
-    marker_parser.add_argument("-g", "--groups", type=str, nargs="+", help="the subset cell groups to compare, using the group names in anndata.obs, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']", default="all")
-    marker_parser.add_argument("-k", "--key_added", type=str, help="the key in adata.uns indicating where the information to be saved to")
+        # rank gene parmeters
+        marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
+        marker_parser.add_argument("-n", "--n_genes", type=int, help="the number of top marker genes to plot", default=25)
+        marker_parser.add_argument("-N", "--export_num", type=int, help="the number of top marker genes to be exported to csv", default=50)
+        marker_parser.add_argument("-m", "--method", type=str, help="the method for differential expression analysis, either t-test, wilcoxon, t-test_overestim_var, logreg", default="wilcoxon")
+        marker_parser.add_argument("-c", "--corr_method", type=str, help="the p-value correction method, either benjamini-hochberg or bonferroni", default="benjamini-hochberg")
+        marker_parser.add_argument("-R", "--reference", type=str, help="the cell group to be compared with", default="rest")
+        marker_parser.add_argument("-g", "--groups", type=str, nargs="+", help="the subset cell groups to compare, using the group names in anndata.obs, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']", default="all")
+        marker_parser.add_argument("-k", "--key_added", type=str, help="the key in adata.uns indicating where the information to be saved to")
 
-    marker_parser.set_defaults(func=ranking_main)
-    
+        marker_parser.set_defaults(func=ranking_main)
+        
 
-    ### PLOT_MARKER 
-    plot_marker_parser = subparsers.add_parser("plot_marker", fromfile_prefix_chars="@", description="Arguments for scRNA-seq plotting")
-    
-    # basic parameters
-    plot_marker_parser.add_argument("-i", "--input_file", type=str, help="path of the input after_leiden.pickle file", default="after_ranking_gene.pickle")
-    plot_marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
-    plot_marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
-    plot_marker_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
-    plot_marker_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
-    plot_marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
-    plot_marker_parser.add_argument("-r", "--use_raw", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is using raw; provide no, false, or 0 to not use raw data")
+        ### PLOT_MARKER 
+        plot_marker_parser = subparser.add_parser("plot_marker", fromfile_prefix_chars="@", description="Arguments for scRNA-seq plotting")
+        
+        # basic parameters
+        plot_marker_parser.add_argument("-i", "--input_file", type=str, help="path of the input after_leiden.pickle file", default="after_ranking_gene.pickle")
+        plot_marker_parser.add_argument("-d", "--dpi", type=int, help="the resolution of the output figure", default=80)
+        plot_marker_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="the size of the output figure, use 2 numbers, e.g., 2 2")
+        plot_marker_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
+        plot_marker_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
+        plot_marker_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
+        plot_marker_parser.add_argument("-r", "--use_raw", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is using raw; provide no, false, or 0 to not use raw data")
 
-    # plotting gene parmeters
-    plot_marker_parser.add_argument("-g", "--gene_list", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B) for plotting", default=["MAP2"])
-    plot_marker_parser.add_argument("-t", "--plot_type", type=str, nargs="*", help="define the plotting types, e.g., dotplot, violin, stacked_violin, and rank_genes_groups_violin", default=["violin", "dotplot", "stacked_violin", "rank_genes_groups_violin", "umap"])
-    plot_marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be considered, e.g., leiden, leiden_0.6")
-    #plot_marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
-    plot_marker_parser.add_argument("-n", "--n_genes", type=int, help="number of genes used for plotting rank_genes_groups_violin", default=8)
-    plot_marker_parser.add_argument("-G", "--groups", type=str, nargs="*", help="choose the subset cell groups for plotting rank_genes_groups_violin, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']")
-    plot_marker_parser.add_argument("-X", "--series", type=str, help="A name to append after the project name for output files.")
+        # plotting gene parmeters
+        plot_marker_parser.add_argument("-g", "--gene_list", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B) for plotting", default=["MAP2"])
+        plot_marker_parser.add_argument("-t", "--plot_type", type=str, nargs="*", help="define the plotting types, e.g., dotplot, violin, stacked_violin, and rank_genes_groups_violin", default=["violin", "dotplot", "stacked_violin", "rank_genes_groups_violin", "umap"])
+        plot_marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be considered, e.g., leiden, leiden_0.6")
+        #plot_marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
+        plot_marker_parser.add_argument("-n", "--n_genes", type=int, help="number of genes used for plotting rank_genes_groups_violin", default=8)
+        plot_marker_parser.add_argument("-G", "--groups", type=str, nargs="*", help="choose the subset cell groups for plotting rank_genes_groups_violin, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']")
+        plot_marker_parser.add_argument("-X", "--series", type=str, help="A name to append after the project name for output files.")
 
-    plot_marker_parser.set_defaults(func=plot_makers_main)
+        plot_marker_parser.set_defaults(func=plot_makers_main)
 
 
-    ### ANNOTATE 
-    anno_parser = subparsers.add_parser('annotate', fromfile_prefix_chars="@", description="Arguments for annotate cell types for clusters")
-    
-    # optional argument
-    anno_parser.add_argument("-i", "--input_file", type=str, help="path of the input of 'after_ranking_gene.pickle'", default="after_ranking_gene.pickle")
-    anno_parser.add_argument("-m", "--marker_ref_path", type=str, help="path of panglao reference markers", \
-        default="../scanpy_scripts/reference_markers/marker_panglao_brain_dic_update.json")
-    anno_parser.add_argument("-o", "--out", type=str, help="the path of the anndata object to be saved", default="after_annotated.pickle")
-    anno_parser.add_argument("-d", "--dpi", type=int, help="resolution of the output figure", default=80)
-    anno_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="size of output figure, use 2 numbers, e.g., 2 2")
-    anno_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
-    anno_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
-    anno_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
-    anno_parser.add_argument("-k", "--key", type=str, help="Choose the key of leiden clustering", default="leiden_0.4")
-    anno_parser.add_argument("-r", "--rank_key", type=str, help="Choose the key of rank_genes_groups to be compared to marker_ref, \
-    .g., rank_genes_groups", default="rank_genes_groups_r0.6")
-    anno_parser.add_argument("-n", "--new_cluster_names", type=str, nargs="+", help="provide the cell type name corresponding to each cluster")
-    anno_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
+        ### ANNOTATE 
+        anno_parser = subparser.add_parser('annotate', fromfile_prefix_chars="@", description="Arguments for annotate cell types for clusters")
+        
+        # optional argument
+        anno_parser.add_argument("-i", "--input_file", type=str, help="path of the input of 'after_ranking_gene.pickle'", default="after_ranking_gene.pickle")
+        anno_parser.add_argument("-m", "--marker_ref_path", type=str, help="path of panglao reference markers", \
+            default="../scanpy_scripts/reference_markers/marker_panglao_brain_dic_update.json")
+        anno_parser.add_argument("-o", "--out", type=str, help="the path of the anndata object to be saved", default="after_annotated.pickle")
+        anno_parser.add_argument("-d", "--dpi", type=int, help="resolution of the output figure", default=80)
+        anno_parser.add_argument("-s", "--figsize", type=float, nargs=2, help="size of output figure, use 2 numbers, e.g., 2 2")
+        anno_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
+        anno_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
+        anno_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
+        anno_parser.add_argument("-k", "--key", type=str, help="Choose the key of leiden clustering", default="leiden_0.4")
+        anno_parser.add_argument("-r", "--rank_key", type=str, help="Choose the key of rank_genes_groups to be compared to marker_ref, \
+        .g., rank_genes_groups", default="rank_genes_groups_r0.6")
+        anno_parser.add_argument("-n", "--new_cluster_names", type=str, nargs="+", help="provide the cell type name corresponding to each cluster")
+        anno_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 
-    anno_parser.set_defaults(func=annotate_main)
+        anno_parser.set_defaults(func=annotate_main)
+        
+        ### CONVERT TO H5AD
+        convert_parser = subparser.add_parser('convert_pickle', description="Convert from pickle to h5ad")
+        convert_parser.add_argument("input_file", type=str, help="path of the file to convert, including any project name.", default="after_annotated.pickle")
+        convert_parser.set_defaults(func=convert_pickle_main)
 
-    ### CONVERT TO H5AD
-    convert_parser = subparsers.add_parser('convert_pickle', description="Convert from pickle to h5ad")
-    convert_parser.add_argument("input_file", type=str, help="path of the file to convert, including any project name.", default="after_annotated.pickle")
-    convert_parser.set_defaults(func=convert_pickle_main)
+        args = parser.parse_args(sys.argv[2:])
+        print('Running scanpy tools from path=%s' % args.path)
 
-    args = parser.parse_args()
-    args.func(args)
-    
+    ## SCVI TOOLS (Multiome)  ##
+    def multiome(self):
+        import scvi
+        parser = argparse.ArgumentParser(
+            description='Multiome scRNA and scATAC capability, including model-building')
+        parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.")
+        parser.add_argument('--scRNA_input', help="Path to a folder with scRNA input data.")
+        parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data/")
+        args = parser.parse_args(sys.argv[2:])
+        print('Collecting multiome data from=%s' % args.input_folder)
 
-if __name__ == "__main__":
-    main()
+        ## NEED SOME KIND OF CALLING GPU AND WHATNOT
+
+        # read multiomic data
+        adata = scvi.data.read_10x_multiome("/data/CARD/OTHER/nick_scratch/scvi/filtered_feature_bc_matrix/")
+        adata.var_names_make_unique()
+
+
+if __name__ == '__main__':
+    MyPipeline()

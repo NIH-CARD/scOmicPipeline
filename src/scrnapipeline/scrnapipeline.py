@@ -31,12 +31,7 @@ def setup(dpi=None, figsize=None, **kwargs):
     sc.settings.set_figure_params(dpi=dpi, facecolor="white", figsize=figsize) # frameon=False
     sc.logging.print_version_and_date()
 
-
-def qc(input_file=None, n_top=None, show=None, project=None, 
-figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_counts_mt=None, **kwargs):
-    """
-    This is quality check for scRNA-seq data and do some filterings.
-    """
+def read_rna_file(input_f):
     if input_file.endswith(".h5"):
         adata = sc.read_10x_h5(input_file)
     elif input_file.endswith(".h5ad"):
@@ -45,6 +40,15 @@ figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_cou
         # There is a potential bug in saving file later if use cache=True
         # here input is the directory name which contains matrix file
         adata = sc.read_10x_mtx(input_file, var_names='gene_symbols', cache=True)
+
+        return adata
+
+def qc(input_file=None, n_top=None, show=None, project=None, 
+figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_counts_mt=None, **kwargs):
+    """
+    This is quality check for scRNA-seq data and do some filterings.
+    """
+    adata = read_rna_file(input_file)
 
     adata.var_names_make_unique()
 
@@ -530,6 +534,59 @@ def convert_pickle_main(args):
 #### SCVI_TOOLS FUNCTIONS ####
 def scvi_main():
     import scvi
+    
+    # Create null vars to be added together at the organize stage
+    m_adata = None
+    rna_adata = None
+    atac_adata = None
+
+    # Set the above variables if the command-line argument has been set
+    if args.mm_input_folder:
+        m_adata = scvi.data.read_10x_multiome(args.mm_input_folder)
+        m_adata.var_names_make_unique()
+
+    if args.scRNA_input:
+        rna_adata = read_rna_file(args.scRNA_input)
+        rna_adata.var_names_make_unique()
+
+    if args.scATAC_input:
+        atac_adata = scvi.data.read_10x_atac(args.scATAC_input)
+        atac_adata.var_names_make_unique()
+    
+    # The model may be simplified if the data are fully paired
+    fully_paired = False
+    if not args.scATAC_input and not args.scRNA_input:
+        fully_paired = True
+
+    # Organize 
+    adata_mvi = scvi.data.organize_multiome_anndatas(adata_paired, adata_rna, adata_atac)
+    # Make sure genes appear before genomic regions
+    adata_mvi = adata_mvi[:, adata_mvi.var["modality"].argsort()].copy()
+    # Also filter features to remove those that appear in fewer than 1% of the cells
+    sc.pp.filter_genes(adata_mvi, min_cells=int(adata_mvi.shape[0] * 0.01))
+
+    # The main batch key must be modality. But others, such as  as in the case of multiple RNA-only batches
+    # categorical_covariate_keys
+    scvi.model.MULTIVI.setup_anndata(adata_mvi, batch_key='modality')
+    mvi = scvi.model.MULTIVI(
+    adata_mvi,
+    n_genes=(adata_mvi.var['modality']=='Gene Expression').sum(),
+    n_regions=(adata_mvi.var['modality']=='Peaks').sum(),
+    fully_paired = fully_pairedw
+)
+    mvi.view_anndata_setup()
+
+    mvi.save(args.model_save_name, save_anndata=True, overwrite=True)
+
+    sc.pp.neighbors(mvi.adata, use_rep="MultiVI_latent")
+
+    mvi.adata.obsm["MultiVI_latent"] = mvi.get_latent_representation()
+    sc.pp.neighbors(mvi_adata, use_rep="MultiVI_latent")
+    sc.tl.umap(mvi_adata, min_dist=0.2)
+    sc.pl.umap(mvi_adata, color='modality', save=args.umap_name)
+
+    
+
 
 #def read_scvi_data():
 
@@ -696,11 +753,16 @@ The possible commands are:
         import scvi
         parser = argparse.ArgumentParser(
             description='Multiome scRNA and scATAC capability, including model-building')
-        parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.")
-        parser.add_argument('--scRNA_input', help="Path to a folder with scRNA input data.")
-        parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data/")
+        parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.", default=False)
+        parser.add_argument('--scRNA_input', help="Path to a folder with scRNA input data.", default=False)
+        parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data.", default=False)
+        parser.add_argument('--model_save_name', help="Name under which to save the model", default="model")
+        parser.add_argument('--umap_name', help="Name of the combined modality umap", default="Full_modality_umap")
         args = parser.parse_args(sys.argv[2:])
-        print('Collecting multiome data from=%s' % args.input_folder)
+        print('Collecting multiome data from=%s' % args.mm_input_folder)
+        print('Note: In input data, genes must come before genomic regions')
+        print('Note: When using both combined ATAC/RNAseq data and unimodal data, any features not present in the \
+            multmodal data will be discarded.')
 
         ## NEED SOME KIND OF CALLING GPU AND WHATNOT
 

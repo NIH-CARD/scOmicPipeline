@@ -168,6 +168,8 @@ the previous pickle file.
 <a id="5"></a>
 ## Multiome analysis using scvi tools
 scvi tools creates a probabilistic model from multimodal data. This allows it to take in unimodal data as well and infer the missing modality. When working with scvi tools, input the paired data first, then scRNA-seq data, then scATAC-seq data. When adding unimodal ATAC-seq data, care must be taken to preprocess it so that it shares the same peaks as the other data. 
+
+Test data for this function can be found in this [drive](https://drive.google.com/drive/folders/1da59rcez4VTWOeUNRi7NOL1Ga36Xrlxk?usp=sharing).
     
 <a id="6"></a>
 ### Running

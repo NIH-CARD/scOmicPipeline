@@ -601,7 +601,7 @@ class MyPipeline(object):
 
 The possible commands are:
     scanpy      Do qc and other basic scRNA-seq tasks
-    scvi_tools  Multiome scRNA and scATAC capability, including model-building
+    multiome  Multiome scRNA and scATAC capability, including model-building
 '''))
         parser.add_argument('command', help='Subcommand to run')
         # parse_args defualts to [1:] for args, but you need to 
@@ -767,6 +767,8 @@ The possible commands are:
 
         ## NEED SOME KIND OF CALLING GPU AND WHATNOT
 
+def main():
+    MyPipeline()
 
 if __name__ == '__main__':
     MyPipeline()

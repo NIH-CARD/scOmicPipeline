@@ -594,14 +594,15 @@ def scvi_main():
 class MyPipeline(object):
 
     def __init__(self):
-        parser = argparse.ArgumentParser(
+        parser = MultiLineArgAndFileParser(
+		argparse.ArgumentParser(
             description='The suite of CARD scPipelines',
             usage= '''scrnapipeline <command> [<args>]
 
 The possible commands are:
     scanpy      Do qc and other basic scRNA-seq tasks
     scvi_tools  Multiome scRNA and scATAC capability, including model-building
-''')
+'''))
         parser.add_argument('command', help='Subcommand to run')
         # parse_args defualts to [1:] for args, but you need to 
         # exclude the rest of the args too, or validation will fail
@@ -765,10 +766,6 @@ The possible commands are:
             multmodal data will be discarded.')
 
         ## NEED SOME KIND OF CALLING GPU AND WHATNOT
-
-        # read multiomic data
-        adata = scvi.data.read_10x_multiome("/data/CARD/OTHER/nick_scratch/scvi/filtered_feature_bc_matrix/")
-        adata.var_names_make_unique()
 
 
 if __name__ == '__main__':

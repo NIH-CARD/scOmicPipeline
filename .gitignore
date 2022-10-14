@@ -19,3 +19,4 @@ dist/
 
 # Other things in same folder
 MAESTRO/
+build/

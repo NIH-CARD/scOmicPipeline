@@ -10,10 +10,9 @@ import sys
 #import sys
 #sys.path.append(os.getcwd)
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import scanpy as sc
+#import matplotlib.pyplot as plt
+#import numpy as np
+#import pandas as pd
 import seaborn as sns
 from anndata import AnnData
 
@@ -532,9 +531,10 @@ def convert_pickle_main(args):
 
 
 #### SCVI_TOOLS FUNCTIONS ####
-def scvi_main():
+def scvi_main(args):
     import scvi
-    
+    import scanpy as sc
+
     # Create null vars to be added together at the organize stage
     m_adata = None
     rna_adata = None
@@ -559,7 +559,7 @@ def scvi_main():
         fully_paired = True
 
     # Organize 
-    adata_mvi = scvi.data.organize_multiome_anndatas(adata_paired, adata_rna, adata_atac)
+    adata_mvi = scvi.data.organize_multiome_anndatas(m_adata, rna_adata, atac_adata)
     # Make sure genes appear before genomic regions
     adata_mvi = adata_mvi[:, adata_mvi.var["modality"].argsort()].copy()
     # Also filter features to remove those that appear in fewer than 1% of the cells
@@ -569,10 +569,11 @@ def scvi_main():
     # categorical_covariate_keys
     scvi.model.MULTIVI.setup_anndata(adata_mvi, batch_key='modality')
     mvi = scvi.model.MULTIVI(
-    adata_mvi,
-    n_genes=(adata_mvi.var['modality']=='Gene Expression').sum(),
-    n_regions=(adata_mvi.var['modality']=='Peaks').sum(),
-    fully_paired = fully_pairedw
+        adata_mvi,
+        n_genes=(adata_mvi.var['modality']=='Gene Expression').sum(),
+        n_regions=(adata_mvi.var['modality']=='Peaks').sum(),
+        n_proteins=0,
+        fully_paired = fully_paired
 )
     mvi.view_anndata_setup()
 
@@ -747,11 +748,14 @@ The possible commands are:
         convert_parser.set_defaults(func=convert_pickle_main)
 
         args = parser.parse_args(sys.argv[2:])
+
+        # Do import statements here to make things faster
+        import scanpy as sc
+        args.func(args)
         print('Running scanpy tools from path=%s' % args.path)
 
     ## SCVI TOOLS (Multiome)  ##
     def multiome(self):
-        import scvi
         parser = argparse.ArgumentParser(
             description='Multiome scRNA and scATAC capability, including model-building')
         parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.", default=False)
@@ -759,11 +763,16 @@ The possible commands are:
         parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data.", default=False)
         parser.add_argument('--model_save_name', help="Name under which to save the model", default="model")
         parser.add_argument('--umap_name', help="Name of the combined modality umap", default="Full_modality_umap")
+        
+        parser.set_defaults(func=scvi_main)
+
         args = parser.parse_args(sys.argv[2:])
+
+        args.func(args)
         print('Collecting multiome data from=%s' % args.mm_input_folder)
         print('Note: In input data, genes must come before genomic regions')
         print('Note: When using both combined ATAC/RNAseq data and unimodal data, any features not present in the \
-            multmodal data will be discarded.')
+multimodal data will be discarded.')
 
         ## NEED SOME KIND OF CALLING GPU AND WHATNOT
 

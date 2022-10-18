@@ -174,8 +174,19 @@ Test data for this function can be found in this [drive](https://drive.google.co
 <a id="6"></a>
 ### Running
     
-    scrnapipeline multiome --mm_input_folder path/to/my/input
-    (optional) scrnapipeline multiome --mm_input_folder path/to/multimodal input --scRNA_input path/to/scRNA/input
-    (optional) scrnapipeline multiome --mm_input_folder path/to/multimodal input --scATAC_input path/to/scATAC/input
+    scrnapipeline multiome create_model --mm_input_folder path/to/my/input
+    (optional) scrnapipeline multiome create_model --mm_input_folder path/to/multimodal input --scRNA_input path/to/scRNA/input
+    (optional) scrnapipeline multiome create_model --mm_input_folder path/to/multimodal input --scATAC_input path/to/scATAC/input
     (optional) combine all three datatypes
 where the input folder(s) should contain a matrix, barcodes file, and features file.  
+
+To cluster the input, run
+
+    scrnapipeline multiome vis
+
+Generally, when running this module to train a model it is best to take the time to get a node with a gpu. In the future, this will be handled by the program. But for now, use the command `freen` to see find free gpus. Use any that are free. For example:
+    
+    sinteractive --mem=80g --gres=gpu:v100:1
+    
+### Features to add:
+1. Batch correction

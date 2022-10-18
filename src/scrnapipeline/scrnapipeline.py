@@ -10,9 +10,6 @@ import sys
 #import sys
 #sys.path.append(os.getcwd)
 
-#import matplotlib.pyplot as plt
-#import numpy as np
-#import pandas as pd
 import seaborn as sns
 from anndata import AnnData
 
@@ -577,14 +574,35 @@ def scvi_main(args):
 )
     mvi.view_anndata_setup()
 
+    mvi.train()
+
     mvi.save(args.model_save_name, save_anndata=True, overwrite=True)
 
-    sc.pp.neighbors(mvi.adata, use_rep="MultiVI_latent")
+def scvi_cluster(args):
+    from scvi.model.utils import mde
+    from scvi.model import MULTIVI
+    from scanpy.pp import neighbors
+    from scanpy.tl import leiden
+    from scanpy.pl import embedding
 
-    mvi.adata.obsm["MultiVI_latent"] = mvi.get_latent_representation()
-    sc.pp.neighbors(mvi_adata, use_rep="MultiVI_latent")
-    sc.tl.umap(mvi_adata, min_dist=0.2)
-    sc.pl.umap(mvi_adata, color='modality', save=args.umap_name)
+    import pymde
+    
+    mvi = MULTIVI.load(args.model_name)
+    adata_mvi = mvi.adata
+    adata_mvi.obsm["X_scVI"] = mvi.get_latent_representation()
+    neighbors(adata_mvi, use_rep="X_scVI")
+    leiden(adata_mvi)
+    
+    adata_mvi.obsm["X_mde"] = mde(adata_mvi.obsm["X_scVI"])
+
+    embedding(
+        adata_mvi,
+        basis="X_mde",
+        color=["leiden"],
+        frameon=False,
+        ncols=1,
+        save=args.save_name
+    )
 
     
 
@@ -615,6 +633,9 @@ The possible commands are:
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
     def scanpy(self):
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
         parser = argparse.ArgumentParser(
             description='qc and other basic scRNA-seq tasks')
             # prefixing the argument with -- means it's optional
@@ -758,13 +779,21 @@ The possible commands are:
     def multiome(self):
         parser = argparse.ArgumentParser(
             description='Multiome scRNA and scATAC capability, including model-building')
-        parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.", default=False)
-        parser.add_argument('--scRNA_input', help="Path to a folder with scRNA input data.", default=False)
-        parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data.", default=False)
-        parser.add_argument('--model_save_name', help="Name under which to save the model", default="model")
-        parser.add_argument('--umap_name', help="Name of the combined modality umap", default="Full_modality_umap")
+        subparser = parser.add_subparsers(title="multiome commands", help="Run any of these commands with --help to learn more about them.")
+        create_parser = subparser.add_parser('create_model', fromfile_prefix_chars="@", description="Creates a model for later use")
+        create_parser.add_argument('--mm_input_folder', help="Path to a folder with multimodal input data.", default=False)
+        create_parser.add_argument('--scRNA_input', help="Path to a folder with scRNA input data.", default=False)
+        create_parser.add_argument('--scATAC_input', help="Path to a folder with scATAC input data.", default=False)
+        create_parser.add_argument('--model_save_name', help="Name under which to save the model", default="model")
+        create_parser.add_argument('--umap_name', help="Name of the combined modality umap", default="Full_modality_umap")
         
-        parser.set_defaults(func=scvi_main)
+        create_parser.set_defaults(func=scvi_main)
+        
+        cluster_parser = subparser.add_parser('vis', fromfile_prefix_chars="@", description="Visualize clusters in the data")
+        cluster_parser.add_argument('--model_name', help="Model name to load", default="model")
+        cluster_parser.add_argument('--save_name', help="Save name for the cluster graph", default="cluster.png")
+
+        cluster_parser.set_defaults(func=scvi_cluster)
 
         args = parser.parse_args(sys.argv[2:])
 

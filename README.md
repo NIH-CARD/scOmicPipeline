@@ -190,3 +190,6 @@ Generally, when running this module to train a model it is best to take the time
     
 ### Features to add:
 1. Batch correction
+2. Better Multiome QC
+3. Subclustering, individual gene support a la https://docs.scvi-tools.org/en/stable/tutorials/notebooks/MultiVI_tutorial.html#Impute-missing-modalities
+4. MAESTRO support

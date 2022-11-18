@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import argparse
 import json
 import os
@@ -7,8 +8,8 @@ import h5py
 from collections import namedtuple
 import sys
 
-#import sys
-#sys.path.append(os.getcwd)
+# import sys
+# sys.path.append(os.getcwd)
 
 import seaborn as sns
 from anndata import AnnData
@@ -22,20 +23,24 @@ def setup(dpi=None, figsize=None, **kwargs):
     """
     Set up the displaying and output parameters
     """
+    import scanpy as sc
+
     sc.settings.verbosity = 3 
     sc.logging.print_versions()
     sc.settings.set_figure_params(dpi=dpi, facecolor="white", figsize=figsize) # frameon=False
     sc.logging.print_version_and_date()
 
 def read_rna_file(input_f):
-    if input_file.endswith(".h5"):
-        adata = sc.read_10x_h5(input_file)
-    elif input_file.endswith(".h5ad"):
-        adata = sc.read_h5ad(input_file)
+    import scanpy as sc
+
+    if input_f.endswith(".h5"):
+        adata = sc.read_10x_h5(input_f)
+    elif input_f.endswith(".h5ad"):
+        adata = sc.read_h5ad(input_f)
     else:
         # There is a potential bug in saving file later if use cache=True
         # here input is the directory name which contains matrix file
-        adata = sc.read_10x_mtx(input_file, var_names='gene_symbols', cache=True)
+        adata = sc.read_10x_mtx(input_f, var_names='gene_symbols', cache=True)
 
         return adata
 
@@ -44,6 +49,8 @@ figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_cou
     """
     This is quality check for scRNA-seq data and do some filterings.
     """
+    import scanpy as sc
+
     adata = read_rna_file(input_file)
 
     adata.var_names_make_unique()
@@ -77,6 +84,8 @@ def normalize_regress(adata, show=None, project=None, figure_type=None, exclude_
     """
     Normalize and logarithmize adata, retrieve highly_variable_genes, and futher scale and remove outliers.
     """
+    import scanpy as sc
+
     # Scale and logarithmize the data
     # here can exclude highly expresseddd gene using
     # sc.pp.normalize_total(adata, target_sum=1e4, exclude_highly_expressed=True)
@@ -99,6 +108,7 @@ def normalize_regress(adata, show=None, project=None, figure_type=None, exclude_
     return adata
 
 def pca(adata, color_gene=None, show=None, project=None, figure_type=None, out=None, **kwargs):
+    import scanpy as sc
 
     # Principal component analysis
     sc.tl.pca(adata, svd_solver='arpack')
@@ -158,6 +168,7 @@ def cluster_main(args):
     """
     Clustering cells after computing pca and neiborhood distances.
     """
+    import scanpy as sc
     
     print()
     print(f"The arguments are {args}")
@@ -232,6 +243,8 @@ def ranking_main(args):
     """
     This is finding marker genes for each cell cluster.
     """
+    import scanpy as sc
+    import pandas as pd
     
     print()
     print("The arguments are: ", args)
@@ -317,6 +330,7 @@ def plot_makers_main(args):
     """
     Visualize the differential expression of marker genes across clusters.
     """
+    import scanpy as sc
 
     print("\nThe arguments are: ", args)
 
@@ -360,7 +374,7 @@ def plot_makers_main(args):
     else:
         print("No such type of plot")
 
-## Annotate
+# # Annotate
 # cell annotation using the reference marker list and a rank_genes_groups at a specific resolution
 
 
@@ -383,7 +397,7 @@ def python_annotate(input, output, **kwargs):
         annotate_2(adata, args.new_cluster_names, key=args.key, out=args.out, project=args.project, figure_type=args.figure_type)
     else:
         annotate(adata, final_type_dic, key=args.key, out=args.out, project=args.project, figure_type=args.figure_type)
-    
+
 def get_ref_list(marker_ref_path):
     """
     Read the reference marker (a dictionary saved as pickle)
@@ -401,6 +415,9 @@ def cell_types(adata, marker_ref, rank_key=None, method=None, normalize=None):
     normalize: use when the method is "overlap_count"; options: "data", "reference", "None"
     Choose the type with the highest score to generate the list of cell types corresponding to each cluster
     """
+    import scanpy as sc
+    import matplotlib.pyplot as plt
+
     annotation = sc.tl.marker_gene_overlap(adata, marker_ref, key=rank_key, method=method, normalize=normalize)
 
     # sns.set(rc={'figure.figsize':(20, 20)})
@@ -427,6 +444,8 @@ def compare_types(adata, marker_ref, rank_key=None):
     Try 3 methods ("overlap_count", jaccard", "overlap_coef") and merge them to a datafram
     The option of normalize in the method of "overlap_count" can change the type greatly
     """
+    import pandas as pd
+
     cell_types_1 = cell_types(adata, marker_ref, rank_key=rank_key, method="overlap_count", normalize="reference")
     cell_types_2 = cell_types(adata, marker_ref, rank_key=rank_key, method="jaccard")
     cell_types_3 = cell_types(adata, marker_ref, rank_key=rank_key, method="overlap_coef")
@@ -451,6 +470,8 @@ def annotate(adata, final_type_dic, key=None, out=None, project=None, figure_typ
     Add the cell type annotation to the adata using a cluster-type dictionary, 
     instead of overwrite the original cluster label.
     """
+    import scanpy as sc
+
     adata.obs[key+"_annotation"] = adata.obs[key].replace(final_type_dic)
     counts_per_type = adata.obs[key+"_annotation"].value_counts()
     per_type = 100*counts_per_type/counts_per_type.sum()
@@ -466,6 +487,8 @@ def annotate_2(adata, new_cluster_names, show=True, key=None, out=None, project=
     However, the categories must be unique.
     The argument of new_cluster_names must be provided. It must be a list and have the same length as the number of clusters.
     """
+    import scanpy as sc
+
     #make a copy of the origanl key
     adata.obs[key+"_orig"] = adata.obs[key]
     adata.rename_categories(key, new_cluster_names)
@@ -473,6 +496,8 @@ def annotate_2(adata, new_cluster_names, show=True, key=None, out=None, project=
     helpers.dump_to_pickle(out, adata)
 
 def annotate_main(args):
+    import scanpy as sc
+
     input_file = args.input_file
     input_file = helpers.get_input_name(args.project, input_file)
     marker_ref_path = args.marker_ref_path
@@ -604,10 +629,22 @@ def scvi_cluster(args):
         save=args.save_name
     )
 
+def scvi_single_modality(args):
+    from scvi.model import MULTIVI
+    from scanpy.pl import umap
+    import numpy as np
+
+    mvi = MULTIVI.load(args.model_name)
+    adata_mvi = mvi.adata
+    single_expression = mvi.get_normalized_expression()
+    gene_idx = np.where(adata_mvi.var.index in args.gene_names)[0]
+    adata_mvi.obs["single"] = single_expression.iloc[:, gene_idx]
+    umap(adata_mvi, color="single", save=str(args.save_name+'_expression'))
+
     
 
 
-#def read_scvi_data():
+# def read_scvi_data():
 
 # This takes inspiration from the follwoing link: https://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
 class MyPipeline(object):
@@ -633,9 +670,8 @@ The possible commands are:
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
     def scanpy(self):
-        import matplotlib.pyplot as plt
-        import numpy as np
-        import pandas as pd
+        import scanpy as sc
+
         parser = argparse.ArgumentParser(
             description='qc and other basic scRNA-seq tasks')
             # prefixing the argument with -- means it's optional
@@ -770,8 +806,6 @@ The possible commands are:
 
         args = parser.parse_args(sys.argv[2:])
 
-        # Do import statements here to make things faster
-        import scanpy as sc
         args.func(args)
         print('Running scanpy tools from path=%s' % args.path)
 
@@ -795,10 +829,17 @@ The possible commands are:
 
         cluster_parser.set_defaults(func=scvi_cluster)
 
+        expression_parser = subparser.add_parser('get_single_modality', fromfile_prefix_chars="@", description="Create a view of expression. You may pick a particular gene if you wish.")
+        expression_parser.add_argument('--model_name', help="Model name to load", default="model")
+        expression_parser.add_argument('--save_name', help="Save name for the cluster graph", default="single_mod")
+        expression_parser.add_argument('--gene_names', help="Save name for the cluster graph", nargs='+', default = [])
+
+        expression_parser.set_defaults(func=scvi_single_modality)
+
+
         args = parser.parse_args(sys.argv[2:])
 
         args.func(args)
-        print('Collecting multiome data from=%s' % args.mm_input_folder)
         print('Note: In input data, genes must come before genomic regions')
         print('Note: When using both combined ATAC/RNAseq data and unimodal data, any features not present in the \
 multimodal data will be discarded.')

@@ -45,7 +45,7 @@ def read_rna_file(input_f):
         return adata
 
 def qc(input_file=None, n_top=None, show=None, project=None, 
-figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_counts_mt=None, **kwargs):
+figure_type=None,min_genes=None, min_cells=None, max_allowed_gene_counts=None, pct_counts_mt=None, **kwargs):
     """
     This is quality check for scRNA-seq data and do some filterings.
     """
@@ -69,13 +69,13 @@ figure_type=None,min_genes=None, min_cells=None, n_genes_by_counts=None, pct_cou
     ## Check sequencing quality
     #choose the threthold of gene numbers to remove, e.g., n_genes = 4500
     #choose the threthold of mitochondial genes to remove, e.g., percent_mito = 0.15
-    sc.pl.violin(adata, ['n_genes_by_counts', 'total_counts', 'pct_counts_mt'],
+    sc.pl.violin(adata, ['max_allowed_gene_counts', 'total_counts', 'pct_counts_mt'],
                 jitter=0.4, multi_panel=True, show=show, save=project+"_qc."+figure_type)
 
     sc.pl.scatter(adata, x='total_counts', y='pct_counts_mt', show=show, save="1"+project+"."+figure_type)
-    sc.pl.scatter(adata, x='total_counts', y='n_genes_by_counts', show=show, save="2"+project+"."+figure_type)
+    sc.pl.scatter(adata, x='total_counts', y='max_allowed_gene_counts', show=show, save="2"+project+"."+figure_type)
 
-    adata = adata[adata.obs.n_genes_by_counts < n_genes_by_counts, :]
+    adata = adata[adata.obs.max_allowed_gene_counts < max_allowed_gene_counts, :]
     adata = adata[adata.obs.pct_counts_mt < pct_counts_mt, :]
 
     return adata
@@ -134,7 +134,7 @@ def qc_main(args):
 
     min_genes = args.min_genes
     min_cells = args.min_cells
-    n_genes_by_counts = args.n_genes_by_counts
+    max_allowed_gene_counts = args.max_allowed_gene_counts
     pct_counts_mt = args.pct_counts_mt
     n_top = args.n_top
     color_gene = args.color_gene
@@ -149,7 +149,7 @@ def qc_main(args):
 
     setup(dpi=dpi, figsize=figsize)
     adata = qc(input_file=input_file, n_top=n_top, show=show, project=project, figure_type=figure_type, 
-    min_genes=min_genes, min_cells=min_cells, n_genes_by_counts=n_genes_by_counts, pct_counts_mt=pct_counts_mt)
+    min_genes=min_genes, min_cells=min_cells, max_allowed_gene_counts=max_allowed_gene_counts, pct_counts_mt=pct_counts_mt)
     adata = normalize_regress(adata, show=show, project=project, figure_type=figure_type, exclude_highly_expressed=exclude_highly_expressed)
     pca(adata, color_gene=color_gene, show=show, project=project, figure_type=figure_type, out=out)
 
@@ -691,7 +691,7 @@ The possible commands are:
         # filtering and plotting parameters
         qc_parser.add_argument("-g", "--min_genes", type=int, help="cell filter: the minimal number of genes which a cell should have", default=200)
         qc_parser.add_argument("-c", "--min_cells", type=int, help="gene filter: the minimal number of cells which a gene should be in", default=3)
-        qc_parser.add_argument("-n", "--n_genes_by_counts", type=int, help="the threthold of gene counts", default=8000)
+        qc_parser.add_argument("-n", "--max_allowed_gene_counts", type=int, help="remove genes with more than this many counts", default=8000)
         qc_parser.add_argument("-m", "--pct_counts_mt", type=float, help="the threthold of mitochondrial genes percentage", default=5.0)
         qc_parser.add_argument("-t", "--n_top", type=int, help="the number of genes to plot in the highest expressed gene plot", default=20)
         qc_parser.add_argument("-C", "--color_gene", type=str, help="the gene whoes expression level is to be colored in the pca plot", default="MAP2")

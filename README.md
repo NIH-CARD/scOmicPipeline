@@ -165,28 +165,7 @@ Feel free to delete the rest as they may be large. Depending on space, it may be
 the previous pickle file.
 
 
-<a id="5"></a>
-## Multiome analysis using scvi tools
-scvi tools creates a probabilistic model from multimodal data. This allows it to take in unimodal data as well and infer the missing modality. When working with scvi tools, input the paired data first, then scRNA-seq data, then scATAC-seq data. When adding unimodal ATAC-seq data, care must be taken to preprocess it so that it shares the same peaks as the other data. 
 
-Test data for this function can be found in this [drive](https://drive.google.com/drive/folders/1da59rcez4VTWOeUNRi7NOL1Ga36Xrlxk?usp=sharing).
-    
-<a id="6"></a>
-### Running
-    
-    scrnapipeline multiome create_model --mm_input_folder path/to/my/input
-    (optional) scrnapipeline multiome create_model --mm_input_folder path/to/multimodal input --scRNA_input path/to/scRNA/input
-    (optional) scrnapipeline multiome create_model --mm_input_folder path/to/multimodal input --scATAC_input path/to/scATAC/input
-    (optional) combine all three datatypes
-where the input folder(s) should contain a matrix, barcodes file, and features file.  
-
-To cluster the input, run
-
-    scrnapipeline multiome vis
-
-Generally, when running this module to train a model it is best to take the time to get a node with a gpu. In the future, this will be handled by the program. But for now, use the command `freen` to see find free gpus. Use any that are free. For example:
-    
-    sinteractive --mem=80g --gres=gpu:v100:1
     
 ### Features to add:
 1. Batch correction

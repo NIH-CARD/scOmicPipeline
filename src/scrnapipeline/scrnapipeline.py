@@ -38,6 +38,8 @@ def read_rna_file(input_f):
         adata = sc.read_10x_h5(input_f)
     elif input_f.endswith(".h5ad"):
         adata = sc.read_h5ad(input_f)
+    elif input_f.endswith(".loom"):
+        adata = sc.read_loom(input_f)
     else:
         # There is a potential bug in saving file later if use cache=True
         # here input is the directory name which contains matrix file
@@ -553,6 +555,7 @@ def convert_pickle_main(args):
         adata.write(output_name, compression='gzip')
 
 
+
 #### SCVI_TOOLS FUNCTIONS ####
 def scvi_main(args):
     import scvi
@@ -723,9 +726,9 @@ The possible commands are:
         cluster_parser.add_argument("-r", "--resolution", type=float, help="the resolution for leiden", default=1.0)
 
         # color parameters and key names to be stored in adata
-        cluster_parser.add_argument("-C", "--color_gene", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B), a key of leiden (e.g., 'leiden' or other key_added like 'leiden_0.6'), or both as color hues in umap plot", default="leiden")
+        cluster_parser.add_argument("-C", "--color_gene", type=str, nargs="*", help="define a list of genes (e.g., MAP2 TEME199 TMEM106B), a key of leiden (e.g., 'leiden' or other key_added like 'leiden_0.6'), or both as color hues in umap plot", default="leiden_1.0")
         # parser.add_argument("-g", "--gene_list", type=str, nargs="+", action="store", dest="list", help="define a list of genes to show in umap, e.g., MAP2 TEME199 NIL", default=['leiden'])
-        cluster_parser.add_argument("-k", "--key_added", type=str, help="the key name of a ledien anaysis to be addeed to anndata", default='leiden')
+        cluster_parser.add_argument("-k", "--key_added", type=str, help="the key name of a ledien anaysis to be addeed to anndata", default='leiden_1.0')
 
         cluster_parser.set_defaults(func=cluster_main)
         
@@ -743,14 +746,14 @@ The possible commands are:
         marker_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 
         # rank gene parmeters
-        marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden")
+        marker_parser.add_argument("-b", "--groupby", type=str, help="the key of the obs grouping to be condisder, e.g., leiden, leiden_0.6", default="leiden_1.0")
         marker_parser.add_argument("-n", "--n_genes", type=int, help="the number of top marker genes to plot", default=25)
         marker_parser.add_argument("-N", "--export_num", type=int, help="the number of top marker genes to be exported to csv", default=50)
         marker_parser.add_argument("-m", "--method", type=str, help="the method for differential expression analysis, either t-test, wilcoxon, t-test_overestim_var, logreg", default="wilcoxon")
         marker_parser.add_argument("-c", "--corr_method", type=str, help="the p-value correction method, either benjamini-hochberg or bonferroni", default="benjamini-hochberg")
         marker_parser.add_argument("-R", "--reference", type=str, help="the cell group to be compared with", default="rest")
         marker_parser.add_argument("-g", "--groups", type=str, nargs="+", help="the subset cell groups to compare, using the group names in anndata.obs, e.g. ['g1', 'g2', 'g3'] or ['0', '1', '2']", default="all")
-        marker_parser.add_argument("-k", "--key_added", type=str, help="the key in adata.uns indicating where the information to be saved to")
+        marker_parser.add_argument("-k", "--key_added", type=str, help="the key in adata.uns indicating where the information to be saved to", default="rank_genes_groups_r1.0")
 
         marker_parser.set_defaults(func=ranking_main)
         
@@ -792,9 +795,9 @@ The possible commands are:
         anno_parser.add_argument("-f", "--figure_type", type=str, help="define the export type of plot_type, e.g., png, pdf, or svg", default="pdf")
         anno_parser.add_argument("-p", "--project", type=str, help="give the project name", default="")
         anno_parser.add_argument("-S", "--show", type=lambda x: (str(x).lower() in ['true', "1", "yes"]), help="default is show=True; provide no, false, or 0 to block print to screen")
-        anno_parser.add_argument("-k", "--key", type=str, help="Choose the key of leiden clustering", default="leiden_0.4")
+        anno_parser.add_argument("-k", "--key", type=str, help="Choose the key of leiden clustering", default="leiden_1.0")
         anno_parser.add_argument("-r", "--rank_key", type=str, help="Choose the key of rank_genes_groups to be compared to marker_ref, \
-        .g., rank_genes_groups", default="rank_genes_groups_r0.6")
+        .g., rank_genes_groups", default="rank_genes_groups_r1.0")
         anno_parser.add_argument("-n", "--new_cluster_names", type=str, nargs="+", help="provide the cell type name corresponding to each cluster")
         anno_parser.add_argument("-D", "--no_deletion", action='store_true', help="if this flag present, don't delete input pickle files upon successful completion of this step")
 

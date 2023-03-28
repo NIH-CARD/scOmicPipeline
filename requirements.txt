@@ -7,3 +7,4 @@ scanpy==1.9.1
 scvi-tools=0.18.0
 seaborn==0.12.0
 leidenalg==0.9.0
+jupyterlab

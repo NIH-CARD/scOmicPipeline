@@ -20,3 +20,9 @@ dist/
 # Other things in same folder
 MAESTRO/
 build/
+
+*.ipynb
+
+*.DS_Store
+
+pipeline_env
